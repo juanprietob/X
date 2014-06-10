@@ -220,6 +220,14 @@ X.interactor = function(element) {
    * @protected
    */
   this._shiftDown = false;
+  
+  /**
+   * The ctrl down flag.
+   *
+   * @type {boolean}
+   * @protected
+   */
+  this._ctrlKeyDown = false;
 
   /**
    * The configuration of this interactor.
@@ -299,6 +307,28 @@ X.interactor.prototype.__defineGetter__('rightButtonDown', function() {
 
 });
 
+/**
+ * Get the state of the ctrl key.
+ *
+ * @return {boolean} TRUE if the ctrl key is pressed, FALSE otherwise.
+ */
+X.interactor.prototype.__defineGetter__('ctrlKeyDown', function() {
+
+  return this._ctrlKeyDown;
+
+});
+
+/**
+ * Get the state of the shift key.
+ *
+ * @return {boolean} TRUE if the shift key is pressed, FALSE otherwise.
+ */
+X.interactor.prototype.__defineGetter__('shiftKeyDown', function() {
+
+  return this._shiftDown;
+
+});
+
 
 /**
  * Observe mouse wheel interaction on the associated DOM element.
@@ -367,6 +397,7 @@ X.interactor.prototype.init = function() {
 
     // the google closure way did not work, so let's do it this way..
     window.onkeydown = this.onKey_.bind(this);
+    window.onkeyup = this.onKeyUp_.bind(this);
 
   } else {
 
@@ -468,6 +499,11 @@ X.interactor.prototype.onMouseDown_ = function(event) {
 
   // prevent further handling by the browser
   event.preventDefault();
+  
+  if(this._leftButtonDown){
+      var event = new CustomEvent('LEFTMOUSEDOWN', { 'detail': this.index });
+      document.dispatchEvent(event);
+  }
 
 };
 
@@ -589,8 +625,10 @@ X.interactor.prototype.onMouseMovementOutside_ = function(event) {
  * @param {Event} event The browser fired mousemove event.
  */
 X.interactor.prototype.onMouseMove = function(event) {
-
-  // do nothing
+  
+  if(this._leftButtonDown){
+      //console.log("mouse pos = " + event.offsetX +", "+ event.offsetY);
+  }
 
 };
 
@@ -944,6 +982,7 @@ X.interactor.prototype.onMouseMovementInside_ = function(event) {
 
     // we re-gained the focus, enable the keyboard observer again!
     window.onkeydown = this.onKey_.bind(this);
+    window.onkeyup = this.onKeyUp_.bind(this);
 
 
   }
@@ -1171,6 +1210,8 @@ X.interactor.prototype.onKey_ = function(event) {
   // observe the control keys (shift, alt, ..)
   var alt = event.altKey;
   var ctrl = event.ctrlKey;
+  this._ctrlKeyDown = ctrl;
+  
   var meta = event.metaKey; // this is f.e. the windows or apple key
   var shift = event.shiftKey;
 
@@ -1191,7 +1232,7 @@ X.interactor.prototype.onKey_ = function(event) {
 
   } else if (keyCode >= 37 && keyCode <= 40) {
 
-    // keyCode <= 37 and >= 40 means the arrow keys
+    // 37 <= keyCode <= 40 means the arrow keys
 
     // prevent any other actions..
     event.preventDefault();
@@ -1280,6 +1321,18 @@ X.interactor.prototype.onKey_ = function(event) {
 
 };
 
+
+/**
+ * Callback for keyboard events on the associated DOM element. This fires proper
+ * X.event events.
+ *
+ * @param {Event} event The browser fired event.
+ * @protected
+ */
+X.interactor.prototype.onKeyUp_ = function(event) {
+    this._ctrlKeyDown = event.ctrlKey;
+}
+
 // export symbols (required for advanced compilation)
 goog.exportSymbol('X.interactor', X.interactor);
 goog.exportSymbol('X.interactor.prototype.init', X.interactor.prototype.init);
@@ -1300,3 +1353,7 @@ goog.exportSymbol('X.interactor.prototype.onTouchEnd',
     X.interactor.prototype.onTouchEnd);
 goog.exportSymbol('X.interactor.prototype.onTouchHover',
     X.interactor.prototype.onTouchHover);
+goog.exportSymbol('X.interactor.prototype.ctrlKeyDown',
+    X.interactor.prototype.ctrlKeyDown);
+    goog.exportSymbol('X.interactor.prototype.shiftKeyDown',
+    X.interactor.prototype.shiftKeyDown);

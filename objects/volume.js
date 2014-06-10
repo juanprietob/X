@@ -482,6 +482,11 @@ X.volume.prototype.slicing_ = function() {
 
     // hide the old slice
     var _oldSlice = _child._children[parseInt(oldIndex, 10)];
+    
+    if(_oldSlice === undefined){
+        return;
+    }
+    
     if(!this._volumeRendering){
 
       _oldSlice['visible'] = false;
@@ -491,6 +496,9 @@ X.volume.prototype.slicing_ = function() {
     // show the current slice and also show the borders if they exist by
     // calling the setter of visible rather than accessing the _visible property
     var _currentSlice = _child._children[parseInt(currentIndex, 10)];
+    if(_currentSlice === undefined){
+        return;
+    }
     _currentSlice['visible'] = true;
     _currentSlice._opacity = 1.0;
 
@@ -556,6 +564,30 @@ X.volume.prototype.__defineGetter__('spacing', function() {
 X.volume.prototype.__defineSetter__('spacing', function(spacing) {
 
   this._spacing = spacing;
+
+});
+
+/**
+ * Get the origin of this volume.
+ *
+ * @param 
+ * @public
+ */
+X.volume.prototype.__defineGetter__('RASOrigin', function() {
+
+  return this._RASOrigin;
+
+});
+
+/**
+ * Get the ras spacing of this volume.
+ *
+ * @param {!Array} spacing The spacing of this volume.
+ * @public
+ */
+X.volume.prototype.__defineGetter__('RASSpacing', function() {
+
+  return this._RASSpacing;
 
 });
 

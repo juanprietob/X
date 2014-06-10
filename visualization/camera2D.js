@@ -108,11 +108,11 @@ X.camera2D.prototype.rotate = function(distance) {
  */
 X.camera2D.prototype.zoomIn = function(fast) {
 
-  var zoomStep = 20;
+  var zoomStep = 10;
 
   if (goog.isDefAndNotNull(fast) && !fast) {
 
-  zoomStep = .02;
+  zoomStep = .2;
 
   }
 
@@ -126,11 +126,11 @@ X.camera2D.prototype.zoomIn = function(fast) {
  */
 X.camera2D.prototype.zoomOut = function(fast) {
 
-  var zoomStep = 20;
+  var zoomStep = 10;
 
   if (goog.isDefAndNotNull(fast) && !fast) {
 
-    zoomStep = .02;
+    zoomStep = .2;
 
   }
 
@@ -153,8 +153,10 @@ X.camera2D.prototype.pan = function(distance) {
 
   }
 
-  // take spacing into account?
+  
   this._view[12] -= distance.x/this._view[14];
-  this._view[13] += distance.y/this._view[14];
+  this._view[13] -= distance.y/this._view[14];
+  
 
 };
+

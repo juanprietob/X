@@ -838,7 +838,13 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
 
   var _csize =  _cswidth*_csheight;
   var textureSize = 4 * _csize;
-  var textureForCurrentSlice = new Uint8Array(textureSize);
+    try {
+        var textureForCurrentSlice = new Uint8Array(textureSize);
+    }
+    catch(err) {
+        return;
+    }
+  //var textureForCurrentSlice = new Uint8Array(textureSize);
   var pixelTexture = new X.texture();
   pixelTexture._rawDataWidth = _cswidth;
   pixelTexture._rawDataHeight = _csheight;
@@ -949,6 +955,7 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
   sliceXY._hmax = _hmax;
   sliceXY._wmin = _wmin;
   sliceXY._wmax = _wmax;
+  //sliceXY._iWidth = _iWidth;
   sliceXY._iWidth = _iWidth;
   sliceXY._iHeight = _iHeight;
   sliceXY._widthSpacing = _resX;

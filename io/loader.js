@@ -166,8 +166,9 @@ X.loader.prototype.checkFileFormat = function(container) {
   // check if the file format is supported
   if (!(extension in X.loader.extensions)) {
 
-    throw new Error('The ' + extension + ' file format is not supported.');
-
+    extension = 'GZ';
+    //throw new Error('The ' + extension + ' file format is not supported.');
+    
   }
 
   return [filepath, extension, X.loader.extensions[extension][0],
