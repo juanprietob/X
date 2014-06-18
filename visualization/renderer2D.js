@@ -249,6 +249,14 @@ X.renderer2D = function() {
    * 
    */
   this._volumeLabelsChanged = 0;
+  
+  /**
+   * This is set if a contour is intersected in the path of the current mouse position.
+   * It is useful to update the whole position of the contour
+   * @type int
+   * @protected
+   */
+  this._pathIntersectionId = -1;
 
 };
 // inherit from X.base
@@ -1311,32 +1319,19 @@ X.renderer2D.prototype.renderLabels = function(offset_x, offset_y, sliceWidth, s
                 var color = annotation["color"];
                 var radius = annotation["radius"];
                 var ijkxyz = [annotation["posIJK"], annotation["pos"], annotation["posPhysical"]];
-                var draw = false;
                 var rowTextid = annotation["rowTextId"];
                 
-                var x = 0;
-                var y = 0;
                 
-                var currentsize = [0, 0];
                 var slicesize = [sliceWidth*this._sliceWidthSpacing, sliceHeight*this._sliceHeightSpacing];
                 var offset = [offset_x, offset_y];
 
-                if(this._orientation == "X"){
-                    currentsize[0] = dim[2];
-                    currentsize[1] = dim[1];
-                }else if(this._orientation == "Y"){
-                    currentsize[0] = dim[0];
-                    currentsize[1] = dim[2];                    
-                }else{
-                    currentsize[0] = dim[0];
-                    currentsize[1] = dim[1];
-                }
+                
                 
                 //window.console['debug'](radius);
                 //window.console['debug'](annotation.color +", " + annotation.radius);
                 //window.console['debug'](annotation.posIJK +", " + annotation.pos);
                 
-                var xy = this.ijk2xy(currentsize, slicesize, offset, ijkxyz);
+                var xy = this.ijk2xy(slicesize, offset, ijkxyz[1]);
                 
                 if(xy !== null){
                 
@@ -1377,47 +1372,59 @@ X.renderer2D.prototype.renderLabels = function(offset_x, offset_y, sliceWidth, s
 
 };
 
-
-X.renderer2D.prototype.ijk2xy = function(currentsize, slicesize, offset, points){
+X.renderer2D.prototype.ijk2xy = function(slicesize, offset, point){
+    var dim = this.m_dimensions;
+    var currentsize = [0, 0];
+    if(this._orientation == "X"){
+        currentsize[0] = dim[2];
+        currentsize[1] = dim[1];
+    }else if(this._orientation == "Y"){
+        currentsize[0] = dim[0];
+        currentsize[1] = dim[2];                    
+    }else{
+        currentsize[0] = dim[0];
+        currentsize[1] = dim[1];
+    }
+    
     var xy = null;
     if(this._orientation === "X"){
-        if(points[0][0] === this._currentSlice){            
+        if(Math.round(point[0]) === this._currentSlice){            
             xy = [0, 0];
-            xy[0] = (currentsize[0] - points[1][2])/currentsize[0];
+            xy[0] = (currentsize[0] - point[2])/currentsize[0];
             xy[0] = xy[0]*slicesize[0];
             xy[0] = xy[0] + offset[0];
 
-            xy[1] = (points[1][1])/currentsize[1];
+            xy[1] = (point[1])/currentsize[1];
             xy[1] = xy[1]*slicesize[1];
             xy[1] = xy[1] + offset[1];
             
         }
     }else if(this._orientation === "Y"){
-        if(points[0][1] === this._currentSlice){
+        if(Math.round(point[1]) === this._currentSlice){
             xy = [0, 0];
-            xy[0] = (currentsize[0] - points[1][0])/currentsize[0];
+            xy[0] = (currentsize[0] - point[0])/currentsize[0];
             xy[0] = xy[0]*slicesize[0];
             xy[0] = xy[0] + offset[0];
 
-            xy[1] = (currentsize[1] - points[1][2])/currentsize[1];
+            xy[1] = (currentsize[1] - point[2])/currentsize[1];
             xy[1] = xy[1]*slicesize[1];
             xy[1] = xy[1] + offset[1];
         }
     }else if(this._orientation === "Z"){                                    
-        if(points[0][2] === this._currentSlice){
+        if(Math.round(point[2]) === this._currentSlice){
             xy = [0, 0];
-            xy[0] = (currentsize[0] - points[1][0])/currentsize[0];
+            xy[0] = (currentsize[0] - point[0])/currentsize[0];
             xy[0] = xy[0]*slicesize[0];
             xy[0] = xy[0] + offset[0];
 
-            xy[1] = (currentsize[1] - points[1][1])/currentsize[1];
+            xy[1] = (currentsize[1] - point[1])/currentsize[1];
             xy[1] = xy[1]*slicesize[1];
             xy[1] = xy[1] + offset[1];
         }
     }
     
     return xy;
-}
+};
 
 /**
  * Convert viewport (canvas) coordinates to volume (index) coordinates.
@@ -1628,7 +1635,7 @@ X.renderer2D.prototype.xy2ijk = function(x, y) {
         
         //window.console['debug']("return = " + [[_ix, _iy, _iz], [_ijk[0], _ijk[1], _ijk[2]], [_ras[0], _ras[1], _ras[2]]]);
         
-        return [[_ix, _iy, _iz], [_ijk[0], _ijk[1], _ijk[2]], [_ras[0], _ras[1], _ras[2]]];
+        return [[_ix, _iy, _iz], [_ijk[0], _ijk[1], _ijk[2]], [_ras[0], _ras[1], _ras[2]], this._pathIntersectionId];
     }
     
     return null;
@@ -1787,28 +1794,6 @@ X.renderer2D.prototype.xy2ijk = function(x, y) {
 
 X.renderer2D.prototype.isLeft = function(a, b, c){
      return ((b[0] - a[0])*(c[1] - a[1]) - (b[1] - a[1])*(c[0] - a[0])) < 0;
-}
-
-
-
-X.renderer2D.prototype.renderCross = function(pixels, ci, cj, currentWidth, color) {
-    
-	
-	var offset = [ [0, 0], [-2, 0], [-1, 0], [1, 0], [2, 0], [0, -2], [0, -1], [0, 1], [0, 2] ];
-	
-	for(var i = 0; i < offset.length; i++){
-		
-		var index = 4*((ci + offset[i][0]) + (cj + offset[i][1])*currentWidth);
-		
-		if( index >= 0 && index < pixels.length){
-			pixels[index] = color[0];
-			pixels[index + 1] = color[1];
-			pixels[index + 2] = color[2];
-			pixels[index + 3] = color[3];
-		}
-	}
-	
-	return pixels;
 };
 
 X.renderer2D.prototype.ctrlDown = function() {
@@ -1817,6 +1802,10 @@ X.renderer2D.prototype.ctrlDown = function() {
 
 X.renderer2D.prototype.shiftDown = function() {
 	return this._interactor._shiftDown;
+};
+
+X.renderer2D.prototype.mousePosition = function() {
+	return this._interactor._mousePosition;
 };
 
 X.renderer2D.prototype.updateSlices = function(i, j, k){
@@ -1838,6 +1827,18 @@ X.renderer2D.prototype.updateSlices = function(i, j, k){
  */
 X.renderer2D.prototype.__defineSetter__('volumeLabelsChanged', function(labelsChanged) {
     this._volumeLabelsChanged = labelsChanged;
+});
+
+/**
+ * Set the path intersection id
+ *
+ * @param {!string|Element|HTMLBodyElement} container Either an ID to a DOM
+ *          container or the DOM element itself.
+ * @throws {Error} An error, if the given container is invalid.
+ * @public
+ */
+X.renderer2D.prototype.__defineSetter__('pathIntersectionId', function(pathId) {
+    this._pathIntersectionId = pathId;
 });
 
 
@@ -1871,6 +1872,7 @@ goog.exportSymbol('X.renderer2D.prototype.setAnnotationTable', X.renderer2D.prot
 goog.exportSymbol('X.renderer2D.prototype.setContoursTable', X.renderer2D.prototype.setContoursTable);
 
 goog.exportSymbol('X.renderer2D.prototype.shiftDown', X.renderer2D.prototype.shiftDown);
+goog.exportSymbol('X.renderer2D.prototype.mousePosition', X.renderer2D.prototype.mousePosition);
 goog.exportSymbol('X.renderer2D.prototype.updateSlices', X.renderer2D.prototype.updateSlices);
 goog.exportSymbol('X.renderer2D.prototype.renderCross', X.renderer2D.prototype.renderCross);
 goog.exportSymbol('X.renderer2D.prototype.ctrlDown', X.renderer2D.prototype.ctrlDown);
