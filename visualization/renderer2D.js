@@ -1792,6 +1792,13 @@ X.renderer2D.prototype.xy2ijk = function(x, y) {
 }*/
 };
 
+X.renderer2D.prototype.getPhysicalPosition = function(ijk){
+    var _ijk = goog.vec.Vec4.createFloat32FromValues(ijk[0], ijk[1], ijk[2], 1);
+    var _ras = goog.vec.Vec4.createFloat32FromValues(0, 0, 0, 1);
+    goog.vec.Mat4.multVec4(this._topLevelObjects[0]._IJKToRAS, _ijk, _ras);
+    return [_ras[0],_ras[1],_ras[2]];
+};
+
 X.renderer2D.prototype.isLeft = function(a, b, c){
      return ((b[0] - a[0])*(c[1] - a[1]) - (b[1] - a[1])*(c[0] - a[0])) < 0;
 };
@@ -1877,4 +1884,4 @@ goog.exportSymbol('X.renderer2D.prototype.updateSlices', X.renderer2D.prototype.
 goog.exportSymbol('X.renderer2D.prototype.renderCross', X.renderer2D.prototype.renderCross);
 goog.exportSymbol('X.renderer2D.prototype.ctrlDown', X.renderer2D.prototype.ctrlDown);
 goog.exportSymbol('X.renderer2D.prototype.isLeft', X.renderer2D.prototype.isLeft);
-
+goog.exportSymbol('X.renderer2D.prototype.getPhysicalPosition', X.renderer2D.prototype.getPhysicalPosition);
