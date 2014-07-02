@@ -1823,6 +1823,16 @@ X.renderer2D.prototype.updateSlices = function(i, j, k){
     volume.modified(false);
 };
 
+X.renderer2D.prototype.getScale = function(){
+    var _view = this._camera._view;
+   return _view[14];
+};
+
+X.renderer2D.prototype.setScale = function(scale){
+    var _view = this._camera._view;
+    _view[14] = scale;
+};
+
 /**
  * Set the container for this renderer. This has to happen before
  * X.renderer.init() is called.
@@ -1885,3 +1895,6 @@ goog.exportSymbol('X.renderer2D.prototype.renderCross', X.renderer2D.prototype.r
 goog.exportSymbol('X.renderer2D.prototype.ctrlDown', X.renderer2D.prototype.ctrlDown);
 goog.exportSymbol('X.renderer2D.prototype.isLeft', X.renderer2D.prototype.isLeft);
 goog.exportSymbol('X.renderer2D.prototype.getPhysicalPosition', X.renderer2D.prototype.getPhysicalPosition);
+
+goog.exportSymbol('X.renderer2D.prototype.getScale', X.renderer2D.prototype.getScale);
+goog.exportSymbol('X.renderer2D.prototype.setScale', X.renderer2D.prototype.setScale);
