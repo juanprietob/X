@@ -121,13 +121,6 @@ X.renderer2D = function() {
    * @protected
    */
   this._labelContourFrameBuffer = null;
-  /**
-   * The rendering context of the label contours frame buffer.
-   *
-   * @type {?Object}
-   * @protected
-   */
-  this._labelContourFrameBufferContext = null;
 
   /**
    * The current slice width.
@@ -217,30 +210,13 @@ X.renderer2D = function() {
    */
   this._radiological = true;
   
-  /**
-   * the label volume SPINE
-   *
-   * @type {!Array}
-   * @protected
-   */
-  this.m_volumeLabels = 0;
-  
    /**
    * the label array SPINE
    *
    * @type {!Array}
    * @protected
    */
-  this.m_annotations = 0;
-  
-  /**
-   * the contour array SPINE
-   *
-   * @type {!Array}
-   * @protected
-   */
-  this.m_contours = 0;
-  
+  this.m_annotations = 0; 
   
   /**
    * 
@@ -507,7 +483,6 @@ X.renderer2D.prototype.init = function() {
   // create an invisible canvas as a framebuffer
   this._frameBuffer = goog.dom.createDom('canvas');
   this._labelFrameBuffer = goog.dom.createDom('canvas');
-  this._labelContourFrameBuffer = goog.dom.createDom('canvas');
 
   //
   //
@@ -760,15 +735,10 @@ X.renderer2D.prototype.update_ = function(object) {
 	  
 	  _frameBuffer2.width = _width;
 	  _frameBuffer2.height = _height;
-	  
-	  var _frameBuffer3 = this._labelContourFrameBuffer;
-	  _frameBuffer3.width = _width;
-	  _frameBuffer3.height = _height;
 	 
 	  // .. and the context
 	  this._frameBufferContext = _frameBuffer.getContext('2d');
 	  this._labelFrameBufferContext = _frameBuffer2.getContext('2d');
-	  this._labelContourFrameBufferContext = _frameBuffer3.getContext('2d');
 	
 	  // do the following only if the object is brand-new
 	  if (!existed) {
@@ -962,10 +932,6 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     var _frameBuffer2 = this._labelFrameBuffer;
     _frameBuffer2.width = _width2;
     _frameBuffer2.height = _height2;
-    
-    var _frameBuffer3 = this._labelContourFrameBuffer;
-    _frameBuffer3.width = _width2;
-    _frameBuffer3.height = _height2;
 
     // loop through the pixels and draw them to the invisible canvas
     // from bottom right up
@@ -1291,25 +1257,6 @@ X.renderer2D.prototype.setAnnotationTable = function(annotations) {
 	this.m_annotations = annotations;
 };
 
-/**
- * @inheritDoc
- */
-X.renderer2D.prototype.setContoursTable = function(contours) { 
-	this.m_contours = contours;
-};
-
-/**
- * Get the orientation of this renderer. Valid orientations are 'x','y','z' or
- * null.
- *
- * @return {?string} The orientation of this renderer.
- */
-X.renderer2D.prototype.getVolumeLabels = function() {
-
-  return this.m_volumeLabels;
-
-};
-
 X.renderer2D.prototype.renderLabels = function(offset_x, offset_y, sliceWidth, sliceHeight, dim) {
         
         if(this.m_annotations){
@@ -1360,16 +1307,6 @@ X.renderer2D.prototype.renderLabels = function(offset_x, offset_y, sliceWidth, s
             
         }
         
-        
-        
-        
-        /*if(this.m_contours){
-            this.m_contours.drawContours(this);
-        }*/
-        
-        
-
-
 };
 
 X.renderer2D.prototype.ijk2xy = function(slicesize, offset, point){
@@ -1823,6 +1760,11 @@ X.renderer2D.prototype.updateSlices = function(i, j, k){
     volume.modified(false);
 };
 
+X.renderer2D.prototype.getSliceIndex = function(){
+    var volume = this._topLevelObjects[0];
+    return [volume._indexX, volume._indexY, volume._indexZ];
+};
+
 X.renderer2D.prototype.getScale = function(){
     var _view = this._camera._view;
    return _view[14];
@@ -1886,11 +1828,11 @@ goog.exportSymbol('X.renderer2D.prototype.destroy',
 goog.exportSymbol('X.renderer2D.prototype.onSliceNavigation', X.renderer2D.prototype.onSliceNavigation);
 
 goog.exportSymbol('X.renderer2D.prototype.setAnnotationTable', X.renderer2D.prototype.setAnnotationTable);
-goog.exportSymbol('X.renderer2D.prototype.setContoursTable', X.renderer2D.prototype.setContoursTable);
 
 goog.exportSymbol('X.renderer2D.prototype.shiftDown', X.renderer2D.prototype.shiftDown);
 goog.exportSymbol('X.renderer2D.prototype.mousePosition', X.renderer2D.prototype.mousePosition);
 goog.exportSymbol('X.renderer2D.prototype.updateSlices', X.renderer2D.prototype.updateSlices);
+goog.exportSymbol('X.renderer2D.prototype.getSliceIndex', X.renderer2D.prototype.getSliceIndex);
 goog.exportSymbol('X.renderer2D.prototype.renderCross', X.renderer2D.prototype.renderCross);
 goog.exportSymbol('X.renderer2D.prototype.ctrlDown', X.renderer2D.prototype.ctrlDown);
 goog.exportSymbol('X.renderer2D.prototype.isLeft', X.renderer2D.prototype.isLeft);
