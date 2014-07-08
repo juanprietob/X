@@ -1259,53 +1259,7 @@ X.renderer2D.prototype.setAnnotationTable = function(annotations) {
 
 X.renderer2D.prototype.renderLabels = function(offset_x, offset_y, sliceWidth, sliceHeight, dim) {
         
-        if(this.m_annotations){
-            for (var key in this.m_annotations.map){
-                
-                var annotation = this.m_annotations.map[key];
-                var color = annotation["color"];
-                var radius = annotation["radius"];
-                var ijkxyz = [annotation["posIJK"], annotation["pos"], annotation["posPhysical"]];
-                var rowTextid = annotation["rowTextId"];
-                
-                
-                var slicesize = [sliceWidth*this._sliceWidthSpacing, sliceHeight*this._sliceHeightSpacing];
-                var offset = [offset_x, offset_y];
-
-                
-                
-                //window.console['debug'](radius);
-                //window.console['debug'](annotation.color +", " + annotation.radius);
-                //window.console['debug'](annotation.posIJK +", " + annotation.pos);
-                
-                var xy = this.ijk2xy(slicesize, offset, ijkxyz[1]);
-                
-                if(xy !== null){
-                
-                    this._context.beginPath();
-                    this._context.arc(xy[0], xy[1], radius, 0, 2 * Math.PI, false);                    
-                    this._context.fillStyle = color;
-                    this._context.fill();
-                    
-                    if(this._orientation == "X") {
-                        
-                        this._context.rotate(-Math.PI * 0.5);
-                        var _buf = xy[0];
-                        xy[0] = -xy[1];
-                        xy[1] = _buf;
-
-                    }
-                    this._context.font="5px Verdana";
-                    this._context.fillText(rowTextid, xy[0] + 0.5, xy[1] - 0.5);
-                    if(this._orientation == "X") {
-                        this._context.rotate(Math.PI * 0.5);
-                    }
-                    
-                    
-                }
-            }   
-            
-        }
+        
         
 };
 
