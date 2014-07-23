@@ -1263,7 +1263,7 @@ X.renderer2D.prototype.renderLabels = function(offset_x, offset_y, sliceWidth, s
         
 };
 
-X.renderer2D.prototype.ijk2xy = function(slicesize, offset, point){
+X.renderer2D.prototype.ijk2xy = function(slicesize, offset, point, force){
     var dim = this.m_dimensions;
     var currentsize = [0, 0];
     if(this._orientation == "X"){
@@ -1279,7 +1279,7 @@ X.renderer2D.prototype.ijk2xy = function(slicesize, offset, point){
     
     var xy = null;
     if(this._orientation === "X"){
-        if(Math.round(point[0]) === this._currentSlice){            
+        if(Math.round(point[0]) === this._currentSlice || force){            
             xy = [0, 0];
             xy[0] = (currentsize[0] - point[2])/currentsize[0];
             xy[0] = xy[0]*slicesize[0];
@@ -1291,7 +1291,7 @@ X.renderer2D.prototype.ijk2xy = function(slicesize, offset, point){
             
         }
     }else if(this._orientation === "Y"){
-        if(Math.round(point[1]) === this._currentSlice){
+        if(Math.round(point[1]) === this._currentSlice || force){
             xy = [0, 0];
             xy[0] = (currentsize[0] - point[0])/currentsize[0];
             xy[0] = xy[0]*slicesize[0];
@@ -1301,7 +1301,7 @@ X.renderer2D.prototype.ijk2xy = function(slicesize, offset, point){
             xy[1] = xy[1]*slicesize[1];
             xy[1] = xy[1] + offset[1];
         }
-    }else if(this._orientation === "Z"){                                    
+    }else if(this._orientation === "Z" || force){                                    
         if(Math.round(point[2]) === this._currentSlice){
             xy = [0, 0];
             xy[0] = (currentsize[0] - point[0])/currentsize[0];
@@ -1515,12 +1515,6 @@ X.renderer2D.prototype.xy2ijk = function(x, y) {
         var _iy = _ijk[1] >= dim[1]? dim[1]: _ijk[1] < 0? 0: Math.round(_ijk[1]);
         var _iz = _ijk[2] >= dim[2]? dim[2]: _ijk[2] < 0? 0: Math.round(_ijk[2]);
         
-        var tempras = [0,0,0];
-        tempras[0] = _ijk[0]*spacing[0] + origin[0];
-        tempras[1] = _ijk[1]*spacing[1] + origin[1];
-        tempras[2] = _ijk[2]*spacing[2] + origin[2];
-        
-        
         var _ras = goog.vec.Vec4.createFloat32FromValues(0, 0, 0, 1);
         goog.vec.Mat4.multVec4(this._topLevelObjects[0]._IJKToRAS, _ijk, _ras);
         
@@ -1683,6 +1677,8 @@ X.renderer2D.prototype.xy2ijk = function(x, y) {
 }*/
 };
 
+
+
 X.renderer2D.prototype.getPhysicalPosition = function(ijk){
     var _ijk = goog.vec.Vec4.createFloat32FromValues(ijk[0], ijk[1], ijk[2], 1);
     var _ras = goog.vec.Vec4.createFloat32FromValues(0, 0, 0, 1);
@@ -1755,6 +1751,41 @@ X.renderer2D.prototype.__defineSetter__('pathIntersectionId', function(pathId) {
 });
 
 
+X.renderer2D.prototype.getVolume = function(){
+    return this._topLevelObjects[0];
+};
+
+X.renderer2D.prototype.getijkpos = function(ixyz) {
+
+    var _ijk = goog.vec.Vec4.createFloat32FromValues(0, 0, 0, 1);
+    _ijk[0] = ixyz[0];
+    _ijk[1] = ixyz[1];
+    _ijk[2] = ixyz[2];
+    
+    var _ras = goog.vec.Vec4.createFloat32FromValues(0, 0, 0, 1);
+    goog.vec.Mat4.multVec4(this._topLevelObjects[0]._IJKToRAS, _ijk, _ras);
+
+    var dim = this.m_dimensions;
+    var _ix = _ijk[0] >= dim[0]? dim[0]: _ijk[0] < 0? 0: Math.round(_ijk[0]);
+    var _iy = _ijk[1] >= dim[1]? dim[1]: _ijk[1] < 0? 0: Math.round(_ijk[1]);
+    var _iz = _ijk[2] >= dim[2]? dim[2]: _ijk[2] < 0? 0: Math.round(_ijk[2]);
+
+    return [[_ix, _iy, _iz], [_ijk[0], _ijk[1], _ijk[2]], [_ras[0], _ras[1], _ras[2]]];
+};
+
+X.renderer2D.prototype.getijkPhysicalPos = function(ras) {
+    
+    var _ijk = goog.vec.Vec4.createFloat32FromValues(0, 0, 0, 1);
+    var _ras = goog.vec.Vec4.createFloat32FromValues(ras[0], ras[1], ras[2], 1);
+    goog.vec.Mat4.multVec4(this._topLevelObjects[0]._RASToIJK, _ras, _ijk);
+
+    var dim = this.m_dimensions;
+    var _ix = _ijk[0] >= dim[0]? dim[0]: _ijk[0] < 0? 0: Math.round(_ijk[0]);
+    var _iy = _ijk[1] >= dim[1]? dim[1]: _ijk[1] < 0? 0: Math.round(_ijk[1]);
+    var _iz = _ijk[2] >= dim[2]? dim[2]: _ijk[2] < 0? 0: Math.round(_ijk[2]);
+
+    return [[_ix, _iy, _iz], [_ijk[0], _ijk[1], _ijk[2]], [_ras[0], _ras[1], _ras[2]]];
+};
 
 // export symbols (required for advanced compilation)
 goog.exportSymbol('X.renderer2D', X.renderer2D);
@@ -1782,6 +1813,10 @@ goog.exportSymbol('X.renderer2D.prototype.destroy',
 goog.exportSymbol('X.renderer2D.prototype.onSliceNavigation', X.renderer2D.prototype.onSliceNavigation);
 
 goog.exportSymbol('X.renderer2D.prototype.setAnnotationTable', X.renderer2D.prototype.setAnnotationTable);
+goog.exportSymbol('X.renderer2D.prototype.getijkpos', X.renderer2D.prototype.getijkpos);
+
+goog.exportSymbol('X.renderer2D.prototype.getijkPhysicalPos', X.renderer2D.prototype.getijkPhysicalPos);
+
 
 goog.exportSymbol('X.renderer2D.prototype.shiftDown', X.renderer2D.prototype.shiftDown);
 goog.exportSymbol('X.renderer2D.prototype.mousePosition', X.renderer2D.prototype.mousePosition);
@@ -1794,3 +1829,5 @@ goog.exportSymbol('X.renderer2D.prototype.getPhysicalPosition', X.renderer2D.pro
 
 goog.exportSymbol('X.renderer2D.prototype.getScale', X.renderer2D.prototype.getScale);
 goog.exportSymbol('X.renderer2D.prototype.setScale', X.renderer2D.prototype.setScale);
+
+goog.exportSymbol('X.renderer2D.prototype.getVolumegetVolume', X.renderer2D.prototype.getVolume);
