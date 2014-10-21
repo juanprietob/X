@@ -1200,7 +1200,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
   } 
   
   
-  if(!(this.ctrlDown() || this.shiftDown())){	  
+  if(!(this.ctrlDown() || this.shiftDown()) ){	  
       
       this.renderLabels(_offset_x, _offset_y, _sliceWidth, _sliceHeight, this.m_dimensions);
       var renderevent = new CustomEvent('RENDERERUPDATE', {detail: this});
@@ -1830,4 +1830,4 @@ goog.exportSymbol('X.renderer2D.prototype.getPhysicalPosition', X.renderer2D.pro
 goog.exportSymbol('X.renderer2D.prototype.getScale', X.renderer2D.prototype.getScale);
 goog.exportSymbol('X.renderer2D.prototype.setScale', X.renderer2D.prototype.setScale);
 
-goog.exportSymbol('X.renderer2D.prototype.getVolumegetVolume', X.renderer2D.prototype.getVolume);
+goog.exportSymbol('X.renderer2D.prototype.getVolume', X.renderer2D.prototype.getVolume);
